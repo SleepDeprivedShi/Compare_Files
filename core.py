@@ -2,30 +2,52 @@ import os
 import hashlib
 import json
 
-def scan_directory(directory, mode):
+def scan_directory(directory, mode, progress_callback=None):
     data = {}
-    total_files=0
-    for root, dirs, files in os.walk(directory):
-            for file in files:
-                try:
-                    full_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(full_path, directory)
-                    size = os.path.getsize(full_path)
-                    entry = {"size": size}
-                    if mode == "md5":
-                        md5 = get_md5(full_path)
-                        if md5:
-                            entry["hash"] = md5
-                            total_files += 1
 
-                    data[rel_path]=entry
-                except Exception:
-                    continue
+    # STEP 1: count total files
+    total_files = 0
+    for _, _, files in os.walk(directory):
+        total_files += len(files)
+
+    processed = 0
+
+    # STEP 2: actual scan
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            try:
+                full_path = os.path.join(root, file)
+                rel_path = os.path.relpath(full_path, directory)
+
+                size = os.path.getsize(full_path)
+                entry = {"size": size}
+
+                if mode == "md5":
+                    md5 = get_md5(full_path)
+                    if md5:
+                        entry["hash"] = md5
+
+                data[rel_path] = entry
+
+                processed += 1
+                if progress_callback:
+                    if total_files > 0:
+                        percent = int((processed / total_files) * 100)
+
+                        if percent == 0 and processed > 0:
+                            percent = 1
+                    else:
+                        percent = 100
+                    progress_callback(percent, rel_path)
+
+            except Exception:
+                continue
+
     return {
-    "type": mode,
-    "files": data,
-    "total_files": total_files
-}
+        "type": mode,
+        "files": data,
+        "total_files": total_files
+    }
 
 def get_md5(file_path):
     hash_md5 = hashlib.md5()

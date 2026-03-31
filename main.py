@@ -11,6 +11,7 @@ from core import scan_directory, save_scan, compare_scans
 
 
 class ScanWorker(QThread):
+    progress = pyqtSignal(int, str)  # percent, filename
     finished = pyqtSignal(dict)
     error = pyqtSignal(str)
 
@@ -21,8 +22,12 @@ class ScanWorker(QThread):
 
     def run(self):
         try:
-            data = scan_directory(self.folder, self.mode)
+            def update(p, file):
+                self.progress.emit(p, file)
+
+            data = scan_directory(self.folder, self.mode, update)
             self.finished.emit(data)
+
         except Exception as e:
             self.error.emit(str(e))
 
@@ -113,6 +118,14 @@ class MainWindow(QWidget):
     # =========================
     # HELPERS
     # =========================
+    def update_progress(self, percent, filename):
+        self.progress.setValue(percent)
+
+        if len(filename) > 50:
+            filename = "..." + filename[-50:]
+
+        self.scan_label.setText(f"Scanning: {filename}")
+
     def create_container(self):
         container = QWidget()
         container.setMinimumWidth(550)
@@ -227,15 +240,20 @@ class MainWindow(QWidget):
 
         container.addWidget(title)
 
+        self.scan_label = QLabel("")
+        self.scan_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
         radio_layout = QHBoxLayout()
         radio_layout.addWidget(self.size_radio)
         radio_layout.addWidget(self.md5_radio)
-        container.addLayout(radio_layout)
 
+        container.addLayout(radio_layout)
         container.addWidget(self.folder_input)
         container.addWidget(browse_btn)
         container.addWidget(scan_btn)
+
         container.addWidget(self.progress)
+        container.addWidget(self.scan_label)
 
     # =========================
     # SCAN
@@ -249,11 +267,16 @@ class MainWindow(QWidget):
             return
 
         self.progress.setVisible(True)
-        self.progress.setRange(0, 0)
+        self.progress.setRange(0, 100)
+        self.progress.setValue(0)
+        self.scan_label.setText("Starting...")
 
         self.worker = ScanWorker(folder, mode)
+
+        self.worker.progress.connect(self.update_progress)
         self.worker.finished.connect(self.scan_finished)
         self.worker.error.connect(self.scan_error)
+
         self.worker.start()
 
     def scan_finished(self, data):
