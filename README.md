@@ -33,13 +33,13 @@ A desktop application that scans directories, generates file metadata, and compa
 ---
 
 ## Project Structure
-
+'''
 project/
 │
 ├── main.py        # PyQt6 GUI
 ├── core.py        # Scanning and comparison logic
 └── README.md
-
+'''
 ---
 
 ## How It Works
@@ -68,13 +68,13 @@ project/
 ## Dependencies
 
 ### Python Dependencies
-
+'''
 - PyQt6
 - numpy
 - hashlib (built-in)
 - json (built-in)
 - os (built-in)
-
+'''
 Install using:
 
 pip install PyQt6 numpy
