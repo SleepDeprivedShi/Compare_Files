@@ -5,14 +5,14 @@ import json
 def scan_directory(directory, mode, progress_callback=None):
     data = {}
 
-    # STEP 1: count total files
+    # count total files
     total_files = 0
     for _, _, files in os.walk(directory):
         total_files += len(files)
 
     processed = 0
 
-    # STEP 2: actual scan
+    # scan
     for root, dirs, files in os.walk(directory):
         for file in files:
             try:
@@ -78,7 +78,6 @@ def save_scan(scan_data, output_file):
 
 def compare_scans(file1, file2):
     try:
-        # load both scan files
         with open(file1, "r") as f1, open(file2, "r") as f2:
             scan1 = json.load(f1)
             scan2 = json.load(f2)
@@ -90,7 +89,6 @@ def compare_scans(file1, file2):
         extra = []
         mismatch = []
 
-        # check missing + mismatch
         for f in files1:
             if f not in files2:
                 missing.append((f, files1[f]["size"]))
@@ -99,12 +97,11 @@ def compare_scans(file1, file2):
                 if files1[f]["size"] != files2[f]["size"]:
                     mismatch.append((f, "size mismatch"))
 
-                # hash check (only if both have hash)
+                # hash check
                 elif "hash" in files1[f] and "hash" in files2[f]:
                     if files1[f]["hash"] != files2[f]["hash"]:
                         mismatch.append((f, "hash mismatch"))
 
-        # check extra files
         for f in files2:
             if f not in files1:
                 extra.append((f, files2[f]["size"]))
