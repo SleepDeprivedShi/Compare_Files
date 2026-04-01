@@ -46,7 +46,7 @@ class MainWindow(QWidget):
         self.apply_dark_theme()
         self.show_main_menu()
 
-    # THEME
+    # THEME CSS
     def apply_dark_theme(self):
         self.setStyleSheet("""
             QWidget {
@@ -113,7 +113,7 @@ class MainWindow(QWidget):
             }
         """)
 
-    # HELPERS
+    # HELPER FUNCTIONS
     def update_progress(self, percent, filename):
         self.progress.setValue(percent)
 
@@ -323,7 +323,7 @@ class MainWindow(QWidget):
         except Exception as e:
             self.show_message("Error", str(e), QMessageBox.Icon.Critical)
 
-    # RESULTS
+    # RESULT SCREEN
     def show_results_table(self, missing, extra, mismatch):
         dialog = QDialog(self)
         dialog.setWindowTitle("Results")
@@ -366,7 +366,7 @@ class MainWindow(QWidget):
         dialog.setLayout(layout)
         dialog.exec()
 
-    # CLEAR
+    # CLEAR SCREEN
     def clear_layout(self):
         while self.layout.count():
             item = self.layout.takeAt(0)
